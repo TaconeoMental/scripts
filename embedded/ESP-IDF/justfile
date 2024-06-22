@@ -1,0 +1,39 @@
+# In simple terms, this file runs a container in the background, configured to
+# work in the current directory. The image isn't designed for this, so I have to
+# use 'docker exec' with some tricks each time I want to run a command inside
+# the container."
+
+_default:
+    @just --list --unsorted
+
+CONTAINER_NAME := "auto-esp-idf"
+
+init uid device:
+    #!/usr/bin/env bash
+    docker run \
+        --rm \
+        --name {{CONTAINER_NAME}} \
+        -v $PWD:/project \
+        -w /project \
+        -u {{uid}} \
+        --device=/dev/ttyUSB0:{{device}} \
+        -e HOME=/tmp \
+        -dit espressif/idf
+
+stop:
+    docker stop {{CONTAINER_NAME}}
+
+# "Since 'source' isn't an executable, I have to call it this way each time to
+# work with virtual-envs, but I silence its output to avoid repetition."
+
+exec *args='/bin/bash':
+    docker exec -it {{CONTAINER_NAME}} /bin/bash -c 'source $IDF_PATH/export.sh >/dev/null 2>&1 && {{args}}'
+
+monitor:
+    just exec idf.py monitor
+
+build:
+    just exec idf.py monitor
+
+flash device='/dev/ttyUSB0':
+    just exec idf.py flash -p {{device}}

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+function echo_colour()
+{
+    str=""
+    case "$2" in
+        "g") str+="\033[32m" ;;
+        "y") str+="\033[31m" ;;
+        "r") str+="\033[33m" ;;
+        *)
+            echo -e "$1"
+            return
+            ;;
+    esac
+    str+="$1\033[0m"
+    echo -e $str
+}
+
+INDENT="  "
+if [ $# -lt 1 ];
+then
+    echo_colour "Usage:"
+    echo_colour "${INDENT}pexec <command>\n"
+    echo_colour "Commands:"
+    echo_colour "${INDENT}s  Source PIO's env."
+    echo_colour "${INDENT}ch Change the devices permissions."
+    echo_colour "${INDENT}c  Just compile the firmware."
+    echo_colour "${INDENT}u  Compile and upload the firmware."
+    echo_colour "${INDENT}um Compile and upload the firmware and start the serial monitor."
+    echo_colour "${INDENT}m  Starts the serial monitor."
+    echo_colour "${INDENT}cl Count lines of code."
+    exit 1
+fi
+
+
+case "$1" in
+    "s")
+        echo_colour "[+] Sourcing" "g"
+        . ~/.platformio/penv/bin/activate ;;
+    "ch") sudo chmod a+rw /dev/ttyUSB0 ;;
+    "c") pio run ;;
+    "um") pio run --target upload; pio device monitor --filter esp32_exception_decoder ;;
+    "u") pio run --target upload ;;
+    "m") pio device monitor --filter esp32_exception_decoder ;;
+    "cl") cloc --exclude-dir=.pio . ;;
+esac
