@@ -74,6 +74,7 @@ function make_modules() {
     sed -i -e 's/read_lock(&dev_base_lock)/rcu_read_lock()/g' \
         -e 's/read_unlock(&dev_base_lock)/rcu_read_unlock()/g' \
         ./vmnet-only/vmnetInt.h
+    sed  -i "s/asm\/timex/uapi\/linux\/timex/" vmmon-only/common/vmx86.c
     echo "[+] Patched source files"
     echo "[*] Running 'make'"
     make
